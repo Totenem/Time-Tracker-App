@@ -21,20 +21,25 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
+    return {"message": "Server is running"}
+
+@app.get("/health")
+async def health():
     conn = connect_to_db()
     if conn:
-        return JSONResponse(status_code=200, content={"message": "Server is running"})
+        return JSONResponse(status_code=200, content={"message": "Health check successful"})
     else:
-        return JSONResponse(status_code=500, content={"message": "Internal server error"})
+        return JSONResponse(status_code=500, content={"message": "Health check failed"})
 
 @app.post("/v1/auth/signup")
 async def signup(user: UserAuth):
     #TODO: Implement signup logic.
+
     return JSONResponse(status_code=201, content={"message": "User created successfully"})
 
 @app.post("/v1/auth/login")
 async def login(user: UserAuth):
-    return {"message": "User logged in successfully"}
+    return JSONResponse(status_code=200, content={"message": "User logged in successfully"})
 
 
 
