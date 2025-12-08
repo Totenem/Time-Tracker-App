@@ -3,6 +3,7 @@ services:
     name: time-tracker-backend
     env: docker
     dockerfilePath: backend/Dockerfile
+    dockerContext: backend
     plan: free
     autoDeploy: true
     envVars:
@@ -20,6 +21,7 @@ services:
     name: time-tracker-frontend
     env: docker
     dockerfilePath: frontend/time-tracker/Dockerfile
+    dockerContext: frontend/time-tracker
     plan: free
     autoDeploy: true
     envVars:
