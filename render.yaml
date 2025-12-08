@@ -13,17 +13,21 @@ services:
     autoDeploy: true
     envVars:
       - key: DB_HOST
-        fromDatabase: time-tracker-db
-        property: host
+        fromDatabase:
+          name: time-tracker-db
+          property: host
       - key: DB_NAME
-        fromDatabase: time-tracker-db
-        property: database
+        fromDatabase:
+          name: time-tracker-db
+          property: database
       - key: DB_USER
-        fromDatabase: time-tracker-db
-        property: user
+        fromDatabase:
+          name: time-tracker-db
+          property: user
       - key: DB_PASSWORD
-        fromDatabase: time-tracker-db
-        property: password
+        fromDatabase:
+          name: time-tracker-db
+          property: password
       - key: TOKEN_SECRET
         generateValue: true
   - type: web
