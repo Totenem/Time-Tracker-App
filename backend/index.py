@@ -3,14 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from models.user import UserSignup, UserLogin
 from models.time import TimeEntry
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from db.server import connect_to_db
 
 from lib.normalize_inputs import normalize_username, normalize_email
 from lib.validate_inputs import validate_password
 
-from services.checking import check_if_username_exists, check_if_email_exists, get_user, get_project_id
+from services.checking import check_if_username_exists, check_if_email_exists, get_user, get_project_id, get_time_entries, get_time_entries_by_project
 from services.inputing import store_user, store_time_entry
 
 from utils.password import hash_password, verify_password
@@ -176,3 +176,36 @@ async def add_time(time: TimeEntry, current_user: dict = Depends(get_current_use
         return JSONResponse(status_code=400, content={"message": str(e)})
     
     return JSONResponse(status_code=200, content={"message": "Time entry added successfully"})
+
+@app.get("/v1/time/get_week_summary")
+async def get_week_summary(current_user: dict = Depends(get_current_user)):
+    user_id = current_user["user_id"]
+    start_date = datetime.now().strftime("%Y-%m-%d")
+    end_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+
+    #get the time entries for the week
+    try:
+        time_entries = get_time_entries(user_id, start_date, end_date)
+    except Exception as e:
+        return JSONResponse(status_code=400, content={"message": str(e)})
+    
+    return JSONResponse(status_code=200, content={"message": "Time entries retrieved successfully", "time_entries": time_entries})
+
+@app.get("/v1/time/project/get_week_summary")
+async def get_project_week_summary(project_name: str, current_user: dict = Depends(get_current_user)):
+    user_id = current_user["user_id"]
+    start_date = datetime.now().strftime("%Y-%m-%d")
+    end_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+
+    try:
+        project_id = get_project_id(project_name)
+    except Exception as e:
+        return JSONResponse(status_code=400, content={"message": str(e)})
+    
+    #get the time entries for the week
+    try:
+        time_entries = get_time_entries_by_project(user_id, start_date, end_date, project_id)
+    except Exception as e:
+        return JSONResponse(status_code=400, content={"message": str(e)})
+    
+    return JSONResponse(status_code=200, content={"message": "Time entries retrieved successfully", "time_entries": time_entries})

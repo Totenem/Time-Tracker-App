@@ -44,10 +44,3 @@ CREATE TABLE time_entries (
     created_at TIMESTAMP DEFAULT NOW(),
     entry_date DATE DEFAULT CURRENT_DATE
 );
-
--- ===========================================
--- INDEXES
--- ===========================================
-CREATE INDEX idx_time_entries_user ON time_entries(user_id);
-CREATE INDEX idx_time_entries_project ON time_entries(project_id);
-CREATE INDEX idx_time_entries_date ON time_entries(entry_date);
