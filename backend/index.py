@@ -9,13 +9,12 @@ from db.server import connect_to_db
 from lib.normalize_inputs import normalize_username, normalize_email
 from lib.validate_inputs import validate_password
 
-from services.checking import check_if_username_exists, check_if_email_exists
+from services.checking import check_if_username_exists, check_if_email_exists, get_user
 from services.inputing import store_user
 
 from utils.password import hash_password, verify_password
 from utils.generate_uuid import generate_uuid
 from lib.jwt_token import generate_jwt_token, verify_jwt_token
-
 
 
 app = FastAPI(
@@ -84,7 +83,6 @@ async def signup(user: UserSignup):
     jwt_payload = {
         "user_id": user_id,
         "username": username,
-        "email": email,
         "created_at": created_at,
     }
 
@@ -109,7 +107,40 @@ async def signup(user: UserSignup):
 
 @app.post("/v1/auth/login")
 async def login(user: UserLogin):
-    return JSONResponse(status_code=200, content={"message": "User logged in successfully"})
+
+    try:
+        username = normalize_username(user.username)
+    except ValueError as e:
+        return JSONResponse(status_code=400, content={"message": str(e)})
+    
+    #get the user from the database
+    try:
+        user_data = get_user(username)
+    except ValueError as e:
+        return JSONResponse(status_code=400, content={"message": str(e)})
+
+    user_id = user_data["user_id"]
+    username = user_data["username"]
+    email = user_data["email"]
+    hashed_password = user_data["password_hash"]
+    created_at = str(user_data["created_at"])
+
+    # Verify the password
+    if not verify_password(user.password, hashed_password):
+        return JSONResponse(status_code=400, content={"message": "Invalid password"})
+
+    
+    jwt_payload = {
+        "user_id": user_id,
+        "username": username,
+        "created_at": created_at,
+    }
+    try:
+        token = generate_jwt_token(jwt_payload)
+    except ValueError as e:
+        return JSONResponse(status_code=400, content={"message": str(e)})
+
+    return JSONResponse(status_code=200, content={"username": username, "message": "User logged in successfully","token": token})
 
 
 
