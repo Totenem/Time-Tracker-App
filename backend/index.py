@@ -10,7 +10,7 @@ from db.server import connect_to_db
 from lib.normalize_inputs import normalize_username, normalize_email
 from lib.validate_inputs import validate_password
 
-from services.checking import check_if_username_exists, check_if_email_exists, get_user, get_project_id, get_time_entries, get_time_entries_by_project
+from services.checking import check_if_username_exists, check_if_email_exists, get_user, get_project_id, get_time_entries, get_time_entries_by_project, get_project_totals
 from services.inputing import store_user, store_time_entry
 
 from utils.password import hash_password, verify_password
@@ -180,8 +180,16 @@ async def add_time(time: TimeEntry, current_user: dict = Depends(get_current_use
 @app.get("/v1/time/get_week_summary")
 async def get_week_summary(current_user: dict = Depends(get_current_user)):
     user_id = current_user["user_id"]
-    start_date = datetime.now().strftime("%Y-%m-%d")
-    end_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+    
+    # Calculate the current week (Monday to Sunday)
+    today = datetime.now()
+    # Get Monday of current week (weekday() returns 0=Monday, 6=Sunday)
+    days_since_monday = today.weekday()
+    monday = today - timedelta(days=days_since_monday)
+    sunday = monday + timedelta(days=6)
+    
+    start_date = monday.strftime("%Y-%m-%d")
+    end_date = sunday.strftime("%Y-%m-%d")
 
     #get the time entries for the week
     try:
@@ -189,23 +197,63 @@ async def get_week_summary(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         return JSONResponse(status_code=400, content={"message": str(e)})
     
-    return JSONResponse(status_code=200, content={"message": "Time entries retrieved successfully", "time_entries": time_entries})
-
-@app.get("/v1/time/get_week_summary")
-async def get_project_week_summary(project_name: str, current_user: dict = Depends(get_current_user)):
-    user_id = current_user["user_id"]
-    start_date = datetime.now().strftime("%Y-%m-%d")
-    end_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+    #get the total hours for the week
+    total_hours = sum(time_entry["hours"] for time_entry in time_entries)
+    
 
     try:
-        project_id = get_project_id(project_name)
+        project_totals = get_project_totals(user_id, start_date, end_date)
     except Exception as e:
         return JSONResponse(status_code=400, content={"message": str(e)})
     
-    #get the time entries for the week
+    return JSONResponse(
+        status_code=200, 
+        content={
+            "message": "Time entries retrieved successfully", 
+            "time_entries": time_entries, 
+            "total_hours": total_hours,
+            "project_totals": project_totals,
+            "week_start": start_date,
+            "week_end": end_date
+        }
+    )
+
+@app.get("/v1/time/get_project_week_summary")
+async def get_project_week_summary(project_name: str, current_user: dict = Depends(get_current_user)):
+    user_id = current_user["user_id"]
+    
+    # Calculate the current week (Monday to Sunday)
+    today = datetime.now()
+    days_since_monday = today.weekday()
+    monday = today - timedelta(days=days_since_monday)
+    sunday = monday + timedelta(days=6)
+    
+    start_date = monday.strftime("%Y-%m-%d")
+    end_date = sunday.strftime("%Y-%m-%d")
+
+    try:
+        project_id = get_project_id(project_name)
+        if project_id is None:
+            return JSONResponse(status_code=400, content={"message": "Project not found"})
+    except Exception as e:
+        return JSONResponse(status_code=400, content={"message": str(e)})
+    
+    #get the time entries for the week for this specific project
     try:
         time_entries = get_time_entries_by_project(user_id, start_date, end_date, project_id)
     except Exception as e:
         return JSONResponse(status_code=400, content={"message": str(e)})
     
-    return JSONResponse(status_code=200, content={"message": "Time entries retrieved successfully", "time_entries": time_entries})
+    #get the total hours for the week for this project
+    total_hours = sum(time_entry["hours"] for time_entry in time_entries)
+    return JSONResponse(
+        status_code=200, 
+        content={
+            "message": "Time entries retrieved successfully", 
+            "project_name": project_name,
+            "time_entries": time_entries, 
+            "total_hours": total_hours,
+            "week_start": start_date,
+            "week_end": end_date
+        }
+    )

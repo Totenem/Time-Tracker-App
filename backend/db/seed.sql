@@ -44,3 +44,11 @@ CREATE TABLE time_entries (
     created_at TIMESTAMP DEFAULT NOW(),
     entry_date DATE DEFAULT CURRENT_DATE
 );
+
+
+INSERT INTO projects (name, description)
+VALUES
+('Website Redesign', 'UI overhaul and component updates'),
+('Mobile App Development', 'Core features of the mobile product'),
+('API Integration', 'Backend API and third-party services'),
+('Internal Tools', 'Tools for automations and reporting');
