@@ -2,7 +2,6 @@ databases:
   - name: time-tracker-db
     plan: free
     databaseName: time_tracker
-    user: postgres
 services:
   - type: web
     name: time-tracker-backend
