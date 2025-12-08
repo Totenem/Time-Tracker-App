@@ -19,12 +19,19 @@ from lib.jwt_token import generate_jwt_token
 
 from middlewares.auth_middleware import get_current_user
 
+import os
+import uvicorn
+
 
 app = FastAPI(
     title="Time Tracker APP API",
     description="API for the Time Tracker APP",
     version="1.0.0"
 )
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("index:app", host="0.0.0.0", port=port)
 
 app.add_middleware(
     CORSMiddleware,

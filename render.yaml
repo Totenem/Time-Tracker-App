@@ -29,6 +29,8 @@ services:
           property: password
       - key: TOKEN_SECRET
         generateValue: true
+      - key: PORT
+        value: "8000"
   - type: web
     name: time-tracker-frontend
     env: docker

@@ -18,8 +18,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application
 COPY . .
 
-# Expose the port FastAPI runs on
+# Expose the port FastAPI runs on (Render provides PORT env var at runtime)
 EXPOSE 8000
 
 # Command to run the application
-CMD ["uvicorn", "index:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "index.py"]
