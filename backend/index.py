@@ -191,7 +191,7 @@ async def get_week_summary(current_user: dict = Depends(get_current_user)):
     
     return JSONResponse(status_code=200, content={"message": "Time entries retrieved successfully", "time_entries": time_entries})
 
-@app.get("/v1/time/project/get_week_summary")
+@app.get("/v1/time/get_week_summary")
 async def get_project_week_summary(project_name: str, current_user: dict = Depends(get_current_user)):
     user_id = current_user["user_id"]
     start_date = datetime.now().strftime("%Y-%m-%d")
