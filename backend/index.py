@@ -49,12 +49,20 @@ async def signup(user: UserSignup):
     #TODO: Implement signup logic.
 
     #normalize the username
-    username = normalize_username(user.username)
-    email = normalize_email(user.email)
-    password = validate_password(user.password)
+    try:
+        username = normalize_username(user.username)
+    except ValueError as e:
+        return JSONResponse(status_code=400, content={"message": str(e)})
 
-    if password.status_code != 200:
-        return password
+    try:
+        email = normalize_email(user.email)
+    except ValueError as e:
+        return JSONResponse(status_code=400, content={"message": str(e)})
+
+    try:
+        password = validate_password(user.password)
+    except ValueError as e:
+        return JSONResponse(status_code=400, content={"message": str(e)})
 
     # check if the username is already taken
     is_username_exists = check_if_username_exists(username)
@@ -71,12 +79,13 @@ async def signup(user: UserSignup):
     #generate uuid
     user_id = generate_uuid()
 
+    created_at = (datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
+
     jwt_payload = {
         "user_id": user_id,
         "username": username,
         "email": email,
-        "created_at": datetime.now(),
-        "updated_at": datetime.now()
+        "created_at": created_at,
     }
 
     storing_payload = {
@@ -84,8 +93,7 @@ async def signup(user: UserSignup):
         "username": username,
         "email": email,
         "password": hashed_password,
-        "created_at": datetime.now(),
-        "updated_at": datetime.now()
+        "created_at": created_at,
     }
 
     #generate the jwt token
