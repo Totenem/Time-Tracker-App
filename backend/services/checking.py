@@ -45,3 +45,16 @@ def get_user(username: str) -> dict:
             raise ValueError("User not found")
     else:
         raise ValueError("Database connection failed")
+
+def get_project_id(project_name: str) -> int:
+    conn = connect_to_db()
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM projects WHERE name = %s", (project_name,))
+        result = cursor.fetchone()
+        if result:
+            return result[0]
+        else:
+            return None
+    else:
+        raise ValueError("Database connection failed")

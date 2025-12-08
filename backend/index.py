@@ -1,7 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from models.user import UserSignup, UserLogin
+from models.time import TimeEntry
 from datetime import datetime
 
 from db.server import connect_to_db
@@ -9,12 +10,14 @@ from db.server import connect_to_db
 from lib.normalize_inputs import normalize_username, normalize_email
 from lib.validate_inputs import validate_password
 
-from services.checking import check_if_username_exists, check_if_email_exists, get_user
-from services.inputing import store_user
+from services.checking import check_if_username_exists, check_if_email_exists, get_user, get_project_id
+from services.inputing import store_user, store_time_entry
 
 from utils.password import hash_password, verify_password
 from utils.generate_uuid import generate_uuid
-from lib.jwt_token import generate_jwt_token, verify_jwt_token
+from lib.jwt_token import generate_jwt_token
+
+from middlewares.auth_middleware import get_current_user
 
 
 app = FastAPI(
@@ -143,4 +146,33 @@ async def login(user: UserLogin):
     return JSONResponse(status_code=200, content={"username": username, "message": "User logged in successfully","token": token})
 
 
+@app.get("/v1/auth/logout")
+async def logout():
+    return JSONResponse(status_code=200, content={"message": "User logged out successfully"})
 
+@app.post("/v1/time/add")
+async def add_time(time: TimeEntry, current_user: dict = Depends(get_current_user)):
+    user_id = current_user["user_id"]
+
+    try:
+        # get project id
+        project_id = get_project_id(time.project_name)
+    except Exception as e:
+        return JSONResponse(status_code=400, content={"message": str(e)})
+    
+    #time entry payload
+    time_entry_payload = {
+        "user_id": user_id,
+        "project_id": project_id,
+        "description": time.description,
+        "hours": time.hours,
+        "entry_date": time.entry_date,
+    }
+
+    #store the time entry in the database
+    try: 
+        store_time_entry(time_entry_payload)
+    except Exception as e:
+        return JSONResponse(status_code=400, content={"message": str(e)})
+    
+    return JSONResponse(status_code=200, content={"message": "Time entry added successfully"})
