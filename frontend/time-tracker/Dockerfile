@@ -3,14 +3,14 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files from repo root context
+COPY frontend/time-tracker/package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies using lockfile
+RUN npm ci
 
-# Copy the rest of the application
-COPY . .
+# Copy the rest of the application from repo root context
+COPY frontend/time-tracker/. .
 
 # Build the Next.js application
 RUN npm run build

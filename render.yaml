@@ -1,3 +1,8 @@
+databases:
+  - name: time-tracker-db
+    plan: free
+    databaseName: time_tracker
+    user: postgres
 services:
   - type: web
     name: time-tracker-backend
@@ -8,13 +13,17 @@ services:
     autoDeploy: true
     envVars:
       - key: DB_HOST
-        value: your-render-db-host
+        fromDatabase: time-tracker-db
+        property: host
       - key: DB_NAME
-        value: your-db-name
+        fromDatabase: time-tracker-db
+        property: database
       - key: DB_USER
-        value: your-db-user
+        fromDatabase: time-tracker-db
+        property: user
       - key: DB_PASSWORD
-        value: your-db-password
+        fromDatabase: time-tracker-db
+        property: password
       - key: TOKEN_SECRET
         generateValue: true
   - type: web
