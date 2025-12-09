@@ -38,4 +38,4 @@ services:
     autoDeploy: true
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: https://time-tracker-backend.onrender.com
+        value: https://time-tracker-backend-rcqd.onrender.com
