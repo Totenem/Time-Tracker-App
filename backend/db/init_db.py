@@ -1,12 +1,13 @@
 import psycopg2
-from psycopg2 import sql
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 def init_database():
-    """Initialize the database by running seed.sql if tables don't exist"""
+    """Initialize the database by running init.sql if tables don't exist"""
+    conn = None
+    cursor = None
     try:
         conn = psycopg2.connect(
             host=os.getenv("DB_HOST"),
@@ -34,13 +35,18 @@ def init_database():
         
         print("Database tables not found. Initializing database...")
         
-        # Read and execute seed.sql
-        seed_file_path = os.path.join(os.path.dirname(__file__), 'seed.sql')
-        with open(seed_file_path, 'r') as f:
-            seed_sql = f.read()
+        # Try to read init.sql first, fallback to seed.sql
+        init_file_path = os.path.join(os.path.dirname(__file__), 'init.sql')
+        if not os.path.exists(init_file_path):
+            init_file_path = os.path.join(os.path.dirname(__file__), 'seed.sql')
+            if not os.path.exists(init_file_path):
+                raise FileNotFoundError(f"Neither init.sql nor seed.sql found in {os.path.dirname(__file__)}")
         
-        # Execute the seed SQL
-        cursor.execute(seed_sql)
+        with open(init_file_path, 'r') as f:
+            init_sql = f.read()
+        
+        # Execute the init SQL
+        cursor.execute(init_sql)
         conn.commit()
         
         print("Database initialized successfully!")
@@ -48,11 +54,18 @@ def init_database():
         conn.close()
         
     except psycopg2.Error as e:
-        print(f"Error initializing database: {e}")
+        print(f"Database error during initialization: {e}")
         if conn:
             conn.rollback()
-            conn.close()
+        raise
+    except FileNotFoundError as e:
+        print(f"File not found: {e}")
         raise
     except Exception as e:
         print(f"Unexpected error during database initialization: {e}")
         raise
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
