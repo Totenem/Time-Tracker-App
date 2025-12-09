@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      POSTGRES_DB: ${DB_NAME:-time_tracker}
+      POSTGRES_DB: ${DB_NAME:-time_tracker_app}
     ports:
       - "5432:5432"
     volumes:
@@ -29,7 +29,7 @@ services:
     environment:
       DB_HOST: db
       TOKEN_SECRET: ${TOKEN_SECRET:-token-secret-here}
-      DB_NAME: ${DB_NAME:-time-tracker-app}
+      DB_NAME: ${DB_NAME:-time_tracker_app}
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
     ports:
