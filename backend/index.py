@@ -6,6 +6,7 @@ from models.time import TimeEntry
 from datetime import datetime, timedelta
 
 from db.server import connect_to_db
+from db.init_db import init_database
 
 from lib.normalize_inputs import normalize_username, normalize_email
 from lib.validate_inputs import validate_password
@@ -40,6 +41,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Initialize database on startup
+@app.on_event("startup")
+async def startup_event():
+    try:
+        init_database()
+    except Exception as e:
+        print(f"Warning: Database initialization failed: {e}")
+        print("The application will continue, but database operations may fail.")
 
 @app.get("/")
 async def root():
