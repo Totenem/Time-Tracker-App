@@ -24,15 +24,19 @@ This will start:
    # Database Configuration
    DB_USER=postgres
    DB_PASSWORD=postgres
-   DB_NAME=time_tracker
+   DB_NAME=time_tracker_app
    
    # Frontend API URL
    NEXT_PUBLIC_API_URL=http://localhost:8000
+   
+   # Optional: JWT Token Secret (for production, use a strong secret)
+   TOKEN_SECRET=token-secret-here
    ```
    
    **Important**: 
    - The `.env` file should be in the **root directory** (where `docker-compose.yml` is located)
    - Change `DB_PASSWORD` to a secure password for production use
+   - **Database name must use underscores, not hyphens** (PostgreSQL requirement)
    - The `.env` file is gitignored, so your credentials won't be committed
 
 2. Start all services:
@@ -52,6 +56,18 @@ This will start:
 - Stop services: `docker compose down`
 - View logs: `docker compose logs`
 - Rebuild after changes: `docker compose up --build`
+- View specific service logs: `docker compose logs backend` or `docker compose logs db`
+
+### Troubleshooting
+
+**Database Connection Issues:**
+- Ensure the database name in your `.env` file matches the `DB_NAME` in `docker-compose.yml` (default: `time_tracker_app`)
+- Database names must use underscores, not hyphens (PostgreSQL requirement)
+- If containers keep restarting, check logs: `docker compose logs backend`
+
+**Port Conflicts:**
+- Make sure ports 5432 (PostgreSQL), 8000 (Backend), and 3000 (Frontend) are not already in use
+- You can change ports in `docker-compose.yml` if needed
 
 ## Manual Setup (Without Docker)
 
@@ -82,14 +98,16 @@ This will start:
 4. Set up environment variables (create `.env` file):
    ```
    DB_HOST=localhost
-   DB_NAME=time_tracker
+   DB_NAME=time_tracker_app
    DB_USER=postgres
    DB_PASSWORD=postgres
+   TOKEN_SECRET=token-secret-here
    ```
 
 5. Set up the database:
-   - Create a PostgreSQL database named `time_tracker`
-   - Run the seed script: `psql -U postgres -d time_tracker -f db/seed.sql`
+   - Create a PostgreSQL database named `time_tracker_app`
+   - The database will be automatically initialized on first startup via `init_db.py`
+   - Alternatively, you can manually run: `psql -U postgres -d time_tracker_app -f db/init.sql`
 
 6. Start the backend server:
    ```bash
